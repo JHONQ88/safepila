@@ -4,8 +4,8 @@ import { ProgressBar } from './components/ProgressBar';
 import { ResultCard } from './components/ResultCard';
 import type { ValidationResult, ValidateResponse, ValidationError } from './types';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api/validate';
-const API_REPORT_URL = import.meta.env.VITE_API_REPORT_URL || '/api/validate/report';
+const API_URL = 'https://safepila-backend.onrender.com/api/validate';
+const API_REPORT_URL = 'https://safepila-backend.onrender.com/api/validate/report';
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
