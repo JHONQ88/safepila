@@ -1,17 +1,36 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { DropZone } from './components/DropZone';
 import { ProgressBar } from './components/ProgressBar';
 import { ResultCard } from './components/ResultCard';
 import type { ValidationResult, ValidateResponse, ValidationError } from './types';
 
-const API_URL = 'https://safepila-backend.onrender.com/api/validate';
-const API_REPORT_URL = 'https://safepila-backend.onrender.com/api/validate/report';
+const API_BASE = 'https://safepila-backend.onrender.com';
+const API_URL = `${API_BASE}/api/validate`;
+const API_REPORT_URL = `${API_BASE}/api/validate/report`;
+const API_HEALTH = `${API_BASE}/api/health`;
+
+const FETCH_TIMEOUT = 90000;
+
+async function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [error, setError] = useState<ValidationError | null>(null);
+
+  useEffect(() => {
+    fetchWithTimeout(API_HEALTH).catch(() => {});
+  }, []);
 
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     setFile(selectedFile);
@@ -23,7 +42,7 @@ export default function App() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch(API_URL, {
+      const response = await fetchWithTimeout(API_URL, {
         method: 'POST',
         body: formData,
       });
@@ -63,7 +82,7 @@ export default function App() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(API_REPORT_URL, {
+      const response = await fetchWithTimeout(API_REPORT_URL, {
         method: 'POST',
         body: formData,
       });
